@@ -1,0 +1,55 @@
+# Environment
+.env
+.env.*
+!.env.example
+!.env.sample
+env/
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Django
+db.sqlite3
+db.sqlite3-*
+*.log
+logs/
+media/
+staticfiles/
+static_root/
+
+# macOS
+.DS_Store
+.AppleDouble
+
+# IDE
+.idea/
+.vscode/
+
+# Secrets
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.json
+credentials.json
+
+# Backups
+*.sql
+*.dump
+*.sqlite3
+*.bak
+*.zip
+
+# Local scripts
+seed_crypto.py

@@ -1,0 +1,9 @@
+{% extends "unfold/layouts/base_simple.html" %}
+{% load i18n unfold %}
+{% block content %}
+<div class="x-dashboard">
+  <div class="x-heading"><div><div class="x-eyebrow">ОПЕРАЦИОННАЯ ПАНЕЛЬ</div><h1>Обзор Xchange</h1><p>Управление клиентами и подтверждениями. Модули обмена и AML добавим следующими этапами.</p></div><span class="x-pill">● Система управления</span></div>
+  <div class="x-cards"><div class="x-stat"><span>Всего пользователей</span><strong>{{ total_users }}</strong><small>Зарегистрировано</small></div><div class="x-stat"><span>Email подтверждён</span><strong>{{ verified_users }}</strong><small>Активированные адреса</small></div><div class="x-stat"><span>Ожидают подтверждения</span><strong>{{ unverified_users }}</strong><small>Не завершили регистрацию</small></div></div>
+  <div class="x-panel"><div class="x-panel-header"><h2>Последние регистрации</h2><a href="{{ user_changelist_url }}">Все пользователи →</a></div><div class="x-table-wrap"><table class="x-table"><thead><tr><th>Email</th><th>Тип аккаунта</th><th>Подтверждение</th><th>Дата</th></tr></thead><tbody>{% for user in recent_users %}<tr><td>{{ user.email }}</td><td>{{ user.get_account_type_display }}</td><td>{% if user.is_email_verified %}<span class="x-ok">Подтверждён</span>{% else %}<span class="x-wait">Ожидает</span>{% endif %}</td><td>{{ user.date_joined|date:"d.m.Y H:i" }}</td></tr>{% empty %}<tr><td colspan="4">Пользователей пока нет</td></tr>{% endfor %}</tbody></table></div></div>
+</div>
+{% endblock %}
