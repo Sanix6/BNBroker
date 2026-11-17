@@ -7,7 +7,7 @@ from apps.integrations.ranex_compliance.client import RanexComplianceClient
 def start_kyc(*, user, applicant_data):
     if not user.is_active:
         raise ValueError('Неактивный пользователь')
-    level = settings.RANEX_COMPLIANCE_LEVEL_NAME
+    level = settings.RUNEX_CATEGORY_KYC_LEVEL
     record = KYCVerification.objects.create(user=user, level_name=level)
     client = RanexComplianceClient()
     try:
@@ -27,6 +27,10 @@ def start_kyc(*, user, applicant_data):
 
 
 def refresh_kyc_status(*, record):
+    # Never overwrite a terminal webhook decision with a stale polling result.
+    record.refresh_from_db()
+    if record.status in (KYCVerification.Status.APPROVED, KYCVerification.Status.REJECTED):
+        return record
     response = RanexComplianceClient().get_status(str(record.user_id))
     status = str(response.get('reviewStatus') or response.get('status') or '').lower()
     answer = str(response.get('reviewAnswer') or '').upper()

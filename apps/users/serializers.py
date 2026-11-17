@@ -13,21 +13,30 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ('id','email','is_email_verified','date_joined')
 
 class RegisterSerializer(serializers.ModelSerializer):
+    account_type = serializers.ChoiceField(
+        choices=User.AccountType.choices,
+        required=True,
+    )
     password = serializers.CharField(write_only=True, validators=[validate_password])
-    accept_offer = serializers.BooleanField(write_only=True)
-    offer_version = serializers.CharField(write_only=True, max_length=32)
+    accept_offer = serializers.BooleanField(write_only=True, required=False)
+    offer_version = serializers.CharField(write_only=True, required=False, max_length=32)
+
+
     class Meta:
         model = User
-        fields = ('email','password','first_name','last_name','phone','account_type','accept_offer','offer_version')
+        fields = ('email','password','account_type','accept_offer','offer_version')
+
     def validate_email(self, value):
         value = value.strip().lower()
         if User.objects.filter(email__iexact=value).exists():
             raise serializers.ValidationError('Этот Email уже зарегистрирован')
         return value
+
     def validate_accept_offer(self, value):
         if not value:
             raise serializers.ValidationError('Необходимо принять публичную оферту')
         return value
+
     @transaction.atomic
     def create(self, validated_data):
         validated_data.pop('accept_offer')
@@ -43,12 +52,13 @@ class RegisterSerializer(serializers.ModelSerializer):
 class VerifyEmailSerializer(serializers.Serializer):
     email = serializers.EmailField()
     code = serializers.RegexField(r'^\d{6}$')
+
     def validate(self, attrs):
         try:
             user = User.objects.get(email__iexact=attrs['email'])
         except User.DoesNotExist:
             raise serializers.ValidationError('Неверный код или Email')
-        record = EmailVerificationCode.objects.filter(user=user, used_at__isnull=True).first()
+        record = EmailVerificationCode.objects.filter(user=user,used_at__isnull=True,).exclude(code_hash__startswith="reset:").first()
         if not record or not record.is_valid:
             raise serializers.ValidationError('Код недействителен или истёк')
         record.attempts += 1
@@ -61,3 +71,32 @@ class VerifyEmailSerializer(serializers.Serializer):
 
 class ResendSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class PasswordResetVerifySerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    code = serializers.RegexField(regex=r"^\d{6}$")
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    reset_token = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(
+        write_only=True,
+        trim_whitespace=False,
+    )
+    confirm_password = serializers.CharField(
+        write_only=True,
+        trim_whitespace=False,
+    )
+
+    def validate(self, attrs):
+        if attrs["new_password"] != attrs["confirm_password"]:
+            raise serializers.ValidationError({
+                "confirm_password": "Пароли не совпадают"
+            })
+        return attrs

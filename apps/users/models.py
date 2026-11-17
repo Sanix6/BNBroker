@@ -48,3 +48,102 @@ class OfferAcceptance(models.Model):
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     class Meta:
         ordering = ['-accepted_at']
+
+
+class UserTwoFactor(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="two_factor",
+    )
+    encrypted_secret = models.TextField(blank=True)
+    encrypted_pending_secret = models.TextField(blank=True)
+    enabled = models.BooleanField(default=False)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    pending_created_at = models.DateTimeField(null=True, blank=True)
+    last_used_step = models.BigIntegerField(default=-1)
+    auth_version = models.PositiveIntegerField(default=0)
+    failed_attempts = models.PositiveIntegerField(default=0)
+    locked_until = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Настройки двухфакторной аутентификации"
+        verbose_name_plural = "Настройки двухфакторной аутентификации"
+
+    def __str__(self):
+        return f"2FA: {self.user_id}"
+
+
+class TwoFactorRecoveryCode(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="two_factor_recovery_codes",
+    )
+    code_hash = models.CharField(max_length=128)
+    created_at = models.DateTimeField(auto_now_add=True)
+    used_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Резервный код 2FA"
+        verbose_name_plural = "Резервные коды 2FA"
+        indexes = [
+            models.Index(fields=["user", "used_at"]),
+        ]
+
+
+class UserLoginHistory(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="login_history",
+    )
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=512, blank=True)
+    successful = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "История входа"
+        verbose_name_plural = "История входов"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "-created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id}: {self.created_at}"
+
+
+class TwoFactorLoginChallenge(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="two_factor_login_challenges",
+    )
+    token_hash = models.CharField(
+        max_length=64,
+        unique=True,
+        db_index=True,
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+    attempts = models.PositiveSmallIntegerField(
+        default=0,
+    )
+
+    class Meta:
+        indexes = [
+            models.Index(
+                fields=["user", "expires_at"],
+            ),
+        ]
+
+    def __str__(self):
+        return f"2FA login challenge: {self.user_id}"

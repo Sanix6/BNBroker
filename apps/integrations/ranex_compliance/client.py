@@ -27,13 +27,13 @@ class RanexComplianceClient:
         session: requests.Session | None = None,
     ) -> None:
         self.base_url = (
-            base_url or settings.RANEX_COMPLIANCE_BASE_URL
+            base_url or settings.RUNEX_KYC_BASE_URL
         ).rstrip("/") + "/"
-        self.api_key = api_key or settings.RANEX_COMPLIANCE_API_KEY
-        self.api_secret = api_secret or settings.RANEX_COMPLIANCE_API_SECRET
+        self.api_key = api_key or settings.RUNEX_KYC_API_KEY
+        self.api_secret = api_secret or settings.RUNEX_KYC_API_SECRET
         self.timeout = (
-            settings.RANEX_COMPLIANCE_CONNECT_TIMEOUT,
-            settings.RANEX_COMPLIANCE_READ_TIMEOUT,
+            settings.RUNEX_KYC_CONNECT_TIMEOUT,
+            settings.RUNEX_KYC_READ_TIMEOUT,
         )
         self.session = session or requests.Session()
         self._validate_configuration()
@@ -74,7 +74,7 @@ class RanexComplianceClient:
                 "verificationLevelName": level_name,
                 "lang": "ru",
                 "theme": "system",
-                "returnUrl": settings.RANEX_COMPLIANCE_RETURN_URL,
+                "returnUrl": settings.RUNEX_KYC_RETURN_URL,
             },
         )
 

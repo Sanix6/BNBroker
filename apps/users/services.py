@@ -9,7 +9,7 @@ from .models import EmailVerificationCode
 
 def send_verification_code(user):
     now = timezone.now()
-    last = EmailVerificationCode.objects.filter(user=user).first()
+    last = EmailVerificationCode.objects.filter(user=user).exclude(code_hash__startswith="reset:").first()
     if last and last.created_at > now - timedelta(seconds=60):
         raise ValueError('Повторная отправка доступна через 60 секунд')
     code = f'{secrets.randbelow(1_000_000):06d}'

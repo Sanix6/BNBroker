@@ -8,6 +8,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import User
 from .serializers import RegisterSerializer, VerifyEmailSerializer, ResendSerializer, UserSerializer
 from .services import send_verification_code
+from drf_spectacular.utils import extend_schema
 
 class AuthThrottle(AnonRateThrottle):
     rate = '10/hour'
@@ -20,6 +21,14 @@ class RegisterView(generics.CreateAPIView):
 class VerifyEmailView(APIView):
     permission_classes = [permissions.AllowAny]
     throttle_classes = [AuthThrottle]
+
+    @extend_schema(
+        tags=["Authentication"],
+        summary="Подтверждение email",
+        description="Проверка шестизначного кода подтверждения email.",
+        request=VerifyEmailSerializer,
+        responses={200: None},
+    )
     @transaction.atomic
     def post(self, request):
         serializer = VerifyEmailSerializer(data=request.data)
@@ -35,6 +44,14 @@ class VerifyEmailView(APIView):
 class ResendEmailView(APIView):
     permission_classes = [permissions.AllowAny]
     throttle_classes = [AuthThrottle]
+
+    @extend_schema(
+        tags=["Authentication"],
+        summary="Повторная отправка кода",
+        description="Отправка нового кода подтверждения email.",
+        request=ResendSerializer,
+        responses={200: None},
+    )
     def post(self, request):
         serializer = ResendSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
