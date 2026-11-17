@@ -25,12 +25,12 @@ def dashboard_callback(request, context):
         'can_kyc': can_kyc,
         'can_users': can_users,
         'report_generated_at': now,
-        'admin_rates_url': reverse('admin:exchange_exchangerate_changelist') if can_rates else '',
-        'admin_rate_add_url': reverse('admin:exchange_exchangerate_add') if user.has_perm('exchange.add_exchangerate') else '',
-        'admin_directions_url': reverse('admin:exchange_exchangedirection_changelist') if user.has_perm('exchange.view_exchangedirection') else '',
-        'admin_orders_url': reverse('admin:exchange_exchangeorder_changelist') if can_orders else '',
-        'admin_kyc_url': reverse('admin:kyc_kycverification_changelist') if can_kyc else '',
-        'admin_users_url': reverse('admin:users_user_changelist') if can_users else '',
+        'admin_rates_url': reverse('bnb_ops_rates') if can_rates else '',
+        'admin_rate_add_url': reverse('bnb_ops_rates') if user.has_perm('exchange.add_exchangerate') else '',
+        'admin_directions_url': reverse('bnb_ops_directions') if user.has_perm('exchange.view_exchangedirection') else '',
+        'admin_orders_url': reverse('bnb_ops_orders') if can_orders else '',
+        'admin_kyc_url': reverse('bnb_ops_applicants') if can_kyc else '',
+        'admin_users_url': reverse('bnb_ops_users') if can_users else '',
     }
 
     if can_orders:

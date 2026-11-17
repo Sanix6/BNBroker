@@ -1,8 +1,4 @@
-"""Ranex Compliance webhook, adapted from WTP signature verification.
 
-Provider contract: X-Webhook-Signature: t=<unix-ms>,v1=<hex-hmac>;
-HMAC-SHA256(base64-decoded 32-byte secret, timestamp + b'.' + raw body).
-"""
 import base64
 import hashlib
 import hmac
@@ -96,8 +92,6 @@ def process_event(payload: dict, digest: str) -> dict:
     if kind == "applicantReviewed" and answer not in ("GREEN", "RED"):
         raise ValueError("Invalid reviewAnswer")
 
-    # Ranex test events may use non-UUID externalUserId values.
-    # Never query a UUIDField with an invalid identifier.
     from django.contrib.auth import get_user_model
     from django.core.exceptions import ValidationError
 
@@ -108,14 +102,12 @@ def process_event(payload: dict, digest: str) -> dict:
         return {"ok": True, "ignored": True, "reason": "unknown_user"}
 
     with transaction.atomic():
-        # Match the exact applicant AND the external user; never approve by user ID alone.
         records = list(KYCVerification.objects.select_for_update().filter(
             user_id=external_user_id, external_applicant_id=applicant_id,
             provider="ranex",
         ).order_by("-created_at")[:2])
         if not records:
-            # The applicant may have been created before the local start was committed.
-            # Retry only if a local start is in progress; otherwise ignore foreign applicants.
+           
             if KYCVerification.objects.filter(user_id=external_user_id, status="not_started").exists():
                 raise RuntimeError("Verification start in progress")
             return {"ok": True, "ignored": True}
@@ -131,7 +123,6 @@ def process_event(payload: dict, digest: str) -> dict:
             return {"ok": True, "ignored": True, "reason": "old_event"}
         if occurred < record.created_at:
             return {"ok": True, "ignored": True, "reason": "before_start"}
-        # A terminal decision is immutable through webhook; subsequent changes require manual review.
         if record.status in (KYCVerification.Status.APPROVED, KYCVerification.Status.REJECTED):
             return {"ok": True, "ignored": True, "reason": "terminal"}
         if kind == "applicantReviewed":
@@ -143,7 +134,6 @@ def process_event(payload: dict, digest: str) -> dict:
             record.status = KYCVerification.Status.ERROR
         else:
             record.status = KYCVerification.Status.PENDING
-        # Deliberately do not store document data, raw body or personal information.
         record.provider_payload = {"event_type": kind, "event_at": occurred.isoformat(),
                                    "webhook_sha256": digest, "review_answer": answer if kind == "applicantReviewed" else None}
         record.save(update_fields=["status", "verified_at", "provider_payload", "updated_at"])

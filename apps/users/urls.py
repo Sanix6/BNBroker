@@ -8,7 +8,10 @@ from .password_reset import (
     PasswordResetConfirmView,
 )
 
+from .password_change import PasswordChangeView
+
 urlpatterns = [
+    path("change-password/", PasswordChangeView.as_view(), name="change-password"),
     path('register/', RegisterView.as_view(), name='register'),
     path('verify-email/', VerifyEmailView.as_view(), name='verify-email'),
     path('resend-code/', ResendEmailView.as_view(), name='resend-code'),

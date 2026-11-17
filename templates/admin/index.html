@@ -35,6 +35,8 @@
       <p class="bnb-sub">BNBroker · Мониторинг обменов, курсов и проверок · {{ report_generated_at|date:"d.m.Y H:i" }}</p>
     </div>
     <div class="bnb-actions">
+      {% if admin_users_url %}<a class="bnb-btn" href="{{ admin_users_url }}">Все пользователи</a>{% endif %}
+      {% if admin_kyc_url %}<a class="bnb-btn" href="{{ admin_kyc_url }}">Все заявители</a>{% endif %}
       {% if admin_orders_url %}<a class="bnb-btn" href="{{ admin_orders_url }}">Все заявки</a>{% endif %}
       {% if admin_rates_url %}<a class="bnb-btn" href="{{ admin_rates_url }}">Управление курсами</a>{% endif %}
       {% if admin_rate_add_url %}<a class="bnb-btn bnb-btn-primary" href="{{ admin_rate_add_url }}">+ Добавить курс</a>{% endif %}
@@ -61,7 +63,7 @@
       <div class="bnb-card {% if kyc_error %}bnb-alert{% endif %}"><span class="label">Ошибки KYC / KYB</span><div class="number">{{ kyc_error }}</div><p class="foot">Проверьте настройку Ranex</p></div>
     {% endif %}
     {% if can_users %}
-      <div class="bnb-card"><span class="label">Пользователи</span><div class="number">{{ users_total }}</div><p class="foot">Физлица: {{ users_individual }} · Юрлица: {{ users_legal }}</p></div>
+      <div class="bnb-card"><span class="label"><a href="{{ admin_users_url }}">Все пользователи →</a></span><div class="number">{{ users_total }}</div><p class="foot">Физлица: {{ users_individual }} · Юрлица: {{ users_legal }}</p></div>
     {% endif %}
   </div>
 

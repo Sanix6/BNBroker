@@ -1,0 +1,21 @@
+{% extends "admin/workspace/base.html" %}
+{% block workspace_content %}
+<section class="bw-titlebar">
+  <div class="bw-heading"><span class="bw-eyebrow">РАБОЧИЙ РАЗДЕЛ / {{ section|upper }}</span><h1>{{ page_title }}</h1><p>{{ subtitle }}</p></div>
+  <div class="bw-actions">{% for action in actions %}{% if action.url %}<a href="{{ action.url }}" class="bw-button {% if action.primary %}bw-primary{% endif %}">{% if action.primary %}<span aria-hidden="true" class="bw-plus">＋</span>{% endif %}{{ action.title }}</a>{% endif %}{% endfor %}</div>
+</section>
+{% if summary %}<section class="bw-stats" aria-label="Сводные показатели">{% for s in summary %}<article class="bw-stat"><div class="bw-stat-label">{{ s.label }}</div><div class="bw-stat-bottom"><strong>{{ s.value }}</strong><span class="bw-stat-mark" aria-hidden="true">↗</span></div></article>{% endfor %}</section>{% endif %}
+<section class="bw-panel bw-main-list">
+ <div class="bw-panelhead"><div><h2>Реестр</h2><p>Все доступные записи в одном месте</p></div><span class="bw-counter">{{ result_count }} записей</span></div>
+ <form class="bw-filterbar" method="get">
+  <label class="bw-search"><span>Поиск по реестру</span><span class="bw-input-wrap"><span class="bw-search-icon">⌕</span><input name="q" value="{{ q }}" placeholder="Введите имя, email, идентификатор…" autocomplete="off"></span></label>
+  {% if statuses %}<label class="bw-select"><span>Фильтр</span><select name="status"><option value="">Все категории и статусы</option>{% for s in statuses %}<option value="{{ s.0 }}" {% if selected == s.0 %}selected{% endif %}>{{ s.1 }}</option>{% endfor %}</select></label>{% endif %}
+  <button class="bw-button bw-primary" type="submit">Применить</button><a class="bw-button bw-button-ghost" href="?">Сбросить</a>
+ </form>
+ <div class="bw-table-wrap" tabindex="0" aria-label="Прокручиваемая таблица"><table class="bw-table"><thead><tr>{% for h in headers %}<th scope="col">{{ h }}</th>{% endfor %}<th scope="col" class="bw-last-column">Действие</th></tr></thead><tbody>
+ {% for r in rows %}<tr>{% for c in r.cells %}<td>{% if c.url %}<a class="bw-strong-link" href="{{ c.url }}">{{ c.value }}</a>{% elif c.tone %}<span class="bw-tag {{ c.tone }}"><span class="bw-tag-dot" aria-hidden="true"></span>{{ c.value }}</span>{% else %}<span class="bw-cell-value">{{ c.value }}</span>{% endif %}{% if c.secondary %}<small class="bw-cell-sub">{{ c.secondary }}</small>{% endif %}</td>{% endfor %}<td class="bw-last-column">{% if r.cells.0.url %}<a href="{{ r.cells.0.url }}" class="bw-open" aria-label="Открыть запись">Открыть <span>↗</span></a>{% else %}<span class="bw-cell-sub">—</span>{% endif %}</td></tr>
+ {% empty %}<tr><td class="bw-empty" colspan="{{ headers|length|add:1 }}"><div class="bw-empty-icon">▤</div><strong>Ничего не найдено</strong><p>Попробуйте другой запрос или сбросьте фильтры.</p></td></tr>{% endfor %}
+ </tbody></table></div>
+ <div class="bw-pagination"><span>Показано {{ rows|length }} из {{ result_count }} · Страница {{ page.number }} из {{ page.paginator.num_pages }}</span><div>{% if page.has_previous %}<a class="bw-button" href="?{{ query_without_page }}&page={{ page.previous_page_number }}">← Назад</a>{% endif %}{% if page.has_next %}<a class="bw-button" href="?{{ query_without_page }}&page={{ page.next_page_number }}">Вперёд →</a>{% endif %}</div></div>
+</section>
+{% endblock %}

@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
-from .models import ExchangeDirection
+from .models import ExchangeDirection, ExchangeRate
 
 
 def active_directions():
@@ -25,6 +25,7 @@ def active_directions():
         ).select_related(
             'from_asset_network__asset', 'from_asset_network__network',
             'to_asset_network__asset', 'to_asset_network__network',
+            'manual_rate',
         ).order_by('id'))
 
 
@@ -40,10 +41,31 @@ def node(direction, side):
 
 
 def serialize(direction):
+    """Backward-compatible direction payload with a current *indicative* rate.
+
+    The rate is NOT fixed until POST /api/v1/exchange/quotes/ succeeds.
+    Missing/disabled rates are explicitly unavailable, never zero.
+    """
     left, right = node(direction, 'from'), node(direction, 'to')
-    return {'id': direction.pk, 'from': left, 'to': right,
-            'from_currency': left['currency'], 'to_currency': right['currency'],
-            'is_active': True}
+    supported = {direction.from_kind, direction.to_kind} == {'fiat', 'crypto'}
+    try:
+        manual_rate = direction.manual_rate if supported else None
+    except ExchangeRate.DoesNotExist:
+        manual_rate = None
+    available = bool(manual_rate and manual_rate.is_active and manual_rate.rate > 0)
+    crypto_node = right if direction.to_kind == 'crypto' else left
+    return {
+        'id': direction.pk,
+        'from': left,
+        'to': right,
+        'from_currency': left['currency'],
+        'to_currency': right['currency'],
+        'network': crypto_node['network'],
+        'rate': str(manual_rate.rate) if available else None,
+        'rate_unit': f"RUB/{crypto_node['currency']}" if supported else None,
+        'is_active': available,
+        'quote_validity_seconds': 1800,
+    }
 
 
 class ExchangeAssetsView(APIView):

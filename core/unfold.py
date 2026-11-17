@@ -117,11 +117,42 @@ UNFOLD_CONFIG = {
                         "icon": "space_dashboard",
                         "link": reverse_lazy("admin:index"),
                     },
-                    nav(
-                        "Пользователи",
-                        "group",
-                        "users.user",
-                    ),
+                                        {
+                        "title": 'Все пользователи',
+                        "icon": 'group',
+                        "link": reverse_lazy('bnb_ops_users'),
+                        "permission": can_view('users.view_user'),
+                    },
+                    {
+                        "title": 'Заявители KYC / KYB',
+                        "icon": 'badge',
+                        "link": reverse_lazy('bnb_ops_applicants'),
+                        "permission": can_view('kyc.view_kycverification'),
+                    },
+                    {
+                        "title": 'Все заявки',
+                        "icon": 'receipt_long',
+                        "link": reverse_lazy('bnb_ops_orders'),
+                        "permission": can_view('exchange.view_exchangeorder'),
+                    },
+                    {
+                        "title": 'Центр курсов',
+                        "icon": 'currency_exchange',
+                        "link": reverse_lazy('bnb_ops_rates'),
+                        "permission": can_view('exchange.view_exchangerate'),
+                    },
+                    {
+                        "title": 'Направления обмена',
+                        "icon": 'swap_horiz',
+                        "link": reverse_lazy('bnb_ops_directions'),
+                        "permission": can_view('exchange.view_exchangedirection'),
+                    },
+                    {
+                        "title": 'AML-мониторинг',
+                        "icon": 'policy',
+                        "link": reverse_lazy('bnb_ops_aml'),
+                        "permission": can_view('compliance.view_amlcheck'),
+                    },
                 ],
             },
 

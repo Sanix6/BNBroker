@@ -15,6 +15,7 @@ urlpatterns = [
 
     path("api/v1/aml/", include("apps.compliance.urls")),
 
+    path("admin/workspace/", include("core.workspace_urls")),
     path("admin/", admin.site.urls),
 
     # API
